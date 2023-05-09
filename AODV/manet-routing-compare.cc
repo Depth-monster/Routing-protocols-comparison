@@ -310,8 +310,8 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
 
     ObjectFactory pos;
     pos.SetTypeId("ns3::RandomRectanglePositionAllocator");//nodes will be allocated randomly in rectangular position
-    pos.Set("X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=300.0]"));//width
-    pos.Set("Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=300.0]"));//height 300x300 meters
+    pos.Set("X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=1500.0]"));//width
+    pos.Set("Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=1500.0]"));//height 300x300 meters
 
     Ptr<PositionAllocator> taPositionAlloc = pos.Create()->GetObject<PositionAllocator>();
     streamIndex += taPositionAlloc->AssignStreams(streamIndex);
@@ -432,7 +432,7 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
 
     CheckThroughput();
     
-AnimationInterface anim ("MRC.xml");
+AnimationInterface anim ("AODV_50.xml");
 //anim.SetMaxPktsPerTraceFile(100000);
 //Packet::SetMaxPerFile(100000);
     Simulator::Stop(Seconds(TotalTime));
