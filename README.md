@@ -26,6 +26,8 @@
 ### OLSR, 150 узлов, 1500x1500
 
 ### DSDV, 150 узлов, 1500x1500
+![image](https://github.com/Depth-monster/Routing-protocols-comparison/assets/122405130/f487976e-7eed-4057-91ed-d7c7e5915dab)
+![image](https://github.com/Depth-monster/Routing-protocols-comparison/assets/122405130/d0580eaf-9c88-4065-b7d7-d3b6a4ab646e)
 
 ### AODV, 200 узлов, 1500x1500
 
