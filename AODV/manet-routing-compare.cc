@@ -75,17 +75,10 @@
 #include "ns3/olsr-module.h"
 #include "ns3/yans-wifi-helper.h"
 
-#include "ns3/flow-monitor-helper.h"//**
+#include "ns3/flow-monitor-helper.h"
 
 #include <fstream>
 #include <iostream>
-
-#include "ns3/netanim-module.h"
-
-
-#include "ns3/packet.h"
-
-
 
 using namespace ns3;
 using namespace dsr;
@@ -147,14 +140,14 @@ class RoutingExperiment
     bool m_traceMobility;       //!< Enavle mobility tracing.
     uint32_t m_protocol;        //!< Protocol type.
 };
-//constructor
+
 RoutingExperiment::RoutingExperiment()
     : port(9),
       bytesTotal(0),
       packetsReceived(0),
-      m_CSVfileName("AODV.csv"),
+      m_CSVfileName("aodv.output.csv"),
       m_traceMobility(false),
-      m_protocol(2) // DSDV -3, aodv-2, olsr -1
+      m_protocol(2) // AODV
 {
 }
 
@@ -193,10 +186,10 @@ RoutingExperiment::ReceivePacket(Ptr<Socket> socket)
 void
 RoutingExperiment::CheckThroughput()
 {
-    double kbs = (bytesTotal * 8.0) / 1000;//kbps. represents the troughput in kilobits per second
+    double kbs = (bytesTotal * 8.0) / 1000;
     bytesTotal = 0;
 
-    std::ofstream out(m_CSVfileName, std::ios::app);//.c_str()
+    std::ofstream out(m_CSVfileName, std::ios::app);
 
     out << (Simulator::Now()).GetSeconds() << "," << kbs << "," << packetsReceived << ","
         << m_nSinks << "," << m_protocolName << "," << m_txp << "" << std::endl;
@@ -228,16 +221,15 @@ RoutingExperiment::CommandSetup(int argc, char** argv)
     cmd.Parse(argc, argv);
     return m_CSVfileName;
 }
-//First class is over, RoutingExperiment
 
 int
 main(int argc, char* argv[])
 {
-    RoutingExperiment experiment; //Object is created
+    RoutingExperiment experiment;
     std::string CSVfileName = experiment.CommandSetup(argc, argv);
 
     // blank out the last output file and write the column headers
-    std::ofstream out(CSVfileName); //.c_str()
+    std::ofstream out(CSVfileName);
     out << "SimulationSecond,"
         << "ReceiveRate,"
         << "PacketsReceived,"
@@ -246,7 +238,7 @@ main(int argc, char* argv[])
         << "TransmissionPower" << std::endl;
     out.close();
 
-    int nSinks = 10;//10
+    int nSinks = 10;
     double txp = 7.5;
 
     experiment.Run(nSinks, txp, CSVfileName);
@@ -262,13 +254,13 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
     m_txp = txp;
     m_CSVfileName = CSVfileName;
 
-    int nWifis = 50;//we have 50 nodes first
+    int nWifis = 50;
 
-    double TotalTime = 100.0;//200
-    std::string rate("2048bps");//2048
+    double TotalTime = 200.0;
+    std::string rate("2048bps");
     std::string phyMode("DsssRate11Mbps");
-    std::string tr_name("AODV");
-    int nodeSpeed = 20; // in m/s 20m/s
+    std::string tr_name("manet-routing-compare");
+    int nodeSpeed = 20; // in m/s
     int nodePause = 0;  // in s
     m_protocolName = "protocol";
 
@@ -283,9 +275,9 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
 
     // setting up wifi phy and channel using helpers
     WifiHelper wifi;
-    wifi.SetStandard(WIFI_STANDARD_80211b);//**
-//YANS - Yet Another Network simulator
-    YansWifiPhyHelper wifiPhy;//**
+    wifi.SetStandard(WIFI_STANDARD_80211b);
+
+    YansWifiPhyHelper wifiPhy;
     YansWifiChannelHelper wifiChannel;
     wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
     wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
@@ -303,15 +295,15 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
     wifiPhy.Set("TxPowerEnd", DoubleValue(txp));
 
     wifiMac.SetType("ns3::AdhocWifiMac");
-    NetDeviceContainer adhocDevices = wifi.Install(wifiPhy, wifiMac, adhocNodes);//channel video must have
+    NetDeviceContainer adhocDevices = wifi.Install(wifiPhy, wifiMac, adhocNodes);
 
-    MobilityHelper mobilityAdhoc;//mobility model
+    MobilityHelper mobilityAdhoc;
     int64_t streamIndex = 0; // used to get consistent mobility across scenarios
 
     ObjectFactory pos;
-    pos.SetTypeId("ns3::RandomRectanglePositionAllocator");//nodes will be allocated randomly in rectangular position
-    pos.Set("X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=1500.0]"));//width
-    pos.Set("Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=1500.0]"));//height 300x300 meters
+    pos.SetTypeId("ns3::RandomRectanglePositionAllocator");
+    pos.Set("X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=300.0]"));
+    pos.Set("Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=1500.0]"));
 
     Ptr<PositionAllocator> taPositionAlloc = pos.Create()->GetObject<PositionAllocator>();
     streamIndex += taPositionAlloc->AssignStreams(streamIndex);
@@ -330,7 +322,7 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
     mobilityAdhoc.SetPositionAllocator(taPositionAlloc);
     mobilityAdhoc.Install(adhocNodes);
     streamIndex += mobilityAdhoc.AssignStreams(adhocNodes, streamIndex);
-//protocolo section
+
     AodvHelper aodv;
     OlsrHelper olsr;
     DsdvHelper dsdv;
@@ -370,7 +362,7 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
         internet.Install(adhocNodes);
         dsrMain.Install(dsr, adhocNodes);
     }
-//IP addressing
+
     NS_LOG_INFO("assigning ip address");
 
     Ipv4AddressHelper addressAdhoc;
@@ -382,7 +374,7 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
     onoff1.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
     onoff1.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
 
-    for (int i = 0; i < nSinks; i++)//10
+    for (int i = 0; i < nSinks; i++)
     {
         Ptr<Socket> sink = SetupPacketReceive(adhocInterfaces.GetAddress(i), adhocNodes.Get(i));
 
@@ -415,26 +407,20 @@ RoutingExperiment::Run(int nSinks, double txp, std::string CSVfileName)
     // tr_name = tr_name + "_" + m_protocolName +"_" + nodes + "nodes_" + sNodeSpeed + "speed_" +
     // sNodePause + "pause_" + sRate + "rate";
 
-     AsciiTraceHelper ascii;//uncommented for tr file
-     Ptr<OutputStreamWrapper> osw = ascii.CreateFileStream(tr_name + ".tr");////uncommented for tr file
-     wifiPhy.EnableAsciiAll(osw);
-    //AsciiTraceHelper ascii;
-    //MobilityHelper::EnableAsciiAll(ascii.CreateFileStream(tr_name + ".mob"));
-    
-//powerful tools flowmonitor
-// this will create an XML file
-// we can use it to parse data in python
+    // AsciiTraceHelper ascii;
+    // Ptr<OutputStreamWrapper> osw = ascii.CreateFileStream(tr_name + ".tr");
+    // wifiPhy.EnableAsciiAll(osw);
+    AsciiTraceHelper ascii;
+    MobilityHelper::EnableAsciiAll(ascii.CreateFileStream(tr_name + ".mob"));
+
      Ptr<FlowMonitor> flowmon;
      FlowMonitorHelper flowmonHelper;
      flowmon = flowmonHelper.InstallAll();
-	
+
     NS_LOG_INFO("Run Simulation.");
 
     CheckThroughput();
-    
-AnimationInterface anim ("AODV_50.xml");
-//anim.SetMaxPktsPerTraceFile(100000);
-//Packet::SetMaxPerFile(100000);
+
     Simulator::Stop(Seconds(TotalTime));
     Simulator::Run();
 
