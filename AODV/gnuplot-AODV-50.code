@@ -1,0 +1,6 @@
+set terminal pdf
+set output "AODV_50.pdf"
+set title "Receive rate and Packets received/Скорость получения и полученные пакеты"
+set xlabel "Simulated Seconds/Время симуляции(сек)"
+set ylabel "Receive Rate (kbps)/Пропускная способность(Kбит/с)"
+plot "AODV_50.csv" using 1:2 with lines title "Receive Rate/Пропускная способность", "AODV_50.csv" using 1:3 with lines title "Packets Received/Пакетов получено"
